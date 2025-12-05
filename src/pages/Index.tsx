@@ -3,16 +3,35 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
 
-type Section = 'commands' | 'profile' | 'search' | 'notifications' | 'help';
+interface Chat {
+  id: number;
+  name: string;
+  lastMessage: string;
+  time: string;
+  unread: number;
+  avatar: string;
+  online: boolean;
+  pinned?: boolean;
+}
+
+interface Message {
+  id: number;
+  text: string;
+  time: string;
+  sent: boolean;
+  read: boolean;
+}
 
 const Index = () => {
-  const [activeSection, setActiveSection] = useState<Section>('commands');
+  const [selectedChat, setSelectedChat] = useState<number | null>(1);
+  const [messageText, setMessageText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [isPWA, setIsPWA] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -21,276 +40,219 @@ const Index = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
-    setIsPWA(isInstalled);
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  const commands = [
-    { id: 1, name: '/start', description: 'Запустить бота', icon: 'Zap', color: 'neon-purple' },
-    { id: 2, name: '/help', description: 'Получить помощь', icon: 'LifeBuoy', color: 'neon-blue' },
-    { id: 3, name: '/settings', description: 'Настройки бота', icon: 'Settings', color: 'neon-pink' },
-    { id: 4, name: '/tasks', description: 'Управление задачами', icon: 'CheckSquare', color: 'neon-purple' },
-    { id: 5, name: '/analytics', description: 'Аналитика и статистика', icon: 'BarChart3', color: 'neon-blue' },
-    { id: 6, name: '/profile', description: 'Ваш профиль', icon: 'User', color: 'neon-pink' },
+  const chats: Chat[] = [
+    { id: 1, name: 'Telegram', lastMessage: 'Добро пожаловать! Это официальный канал новостей.', time: '12:45', unread: 0, avatar: 'TG', online: false, pinned: true },
+    { id: 2, name: 'Рабочая группа', lastMessage: 'Алексей: Готово, отправил файлы', time: '11:23', unread: 3, avatar: 'РГ', online: true, pinned: true },
+    { id: 3, name: 'Мама ❤️', lastMessage: 'Не забудь позвонить вечером', time: 'Вчера', unread: 1, avatar: 'М', online: true },
+    { id: 4, name: 'Друзья', lastMessage: 'Фото', time: 'Вчера', unread: 0, avatar: 'Д', online: false },
+    { id: 5, name: 'Александр', lastMessage: 'Отлично, созвонимся завтра', time: '15.11', unread: 0, avatar: 'А', online: true },
+    { id: 6, name: 'Спорт и здоровье', lastMessage: 'Кто идёт на тренировку завтра?', time: '14.11', unread: 0, avatar: 'СЗ', online: false },
+    { id: 7, name: 'IT новости', lastMessage: 'Новый релиз React 19', time: '13.11', unread: 5, avatar: 'IT', online: false },
   ];
 
-  const notifications = [
-    { id: 1, text: 'Новое задание добавлено', time: '2 мин назад', type: 'info' },
-    { id: 2, text: 'Задача выполнена успешно', time: '15 мин назад', type: 'success' },
-    { id: 3, text: 'Требуется ваше внимание', time: '1 час назад', type: 'warning' },
-    { id: 4, text: 'Система обновлена до v2.0', time: '3 часа назад', type: 'info' },
+  const messages: Message[] = [
+    { id: 1, text: 'Привет! Как дела?', time: '10:30', sent: false, read: true },
+    { id: 2, text: 'Отлично! Работаю над новым проектом', time: '10:32', sent: true, read: true },
+    { id: 3, text: 'Звучит интересно! Расскажешь подробнее?', time: '10:33', sent: false, read: true },
+    { id: 4, text: 'Конечно! Это веб-приложение на React', time: '10:35', sent: true, read: true },
+    { id: 5, text: 'С возможностью работы офлайн', time: '10:35', sent: true, read: true },
   ];
 
-  const navigationItems = [
-    { id: 'commands' as Section, icon: 'Terminal', label: 'Команды' },
-    { id: 'profile' as Section, icon: 'User', label: 'Профиль' },
-    { id: 'search' as Section, icon: 'Search', label: 'Поиск' },
-    { id: 'notifications' as Section, icon: 'Bell', label: 'Уведомления' },
-    { id: 'help' as Section, icon: 'HelpCircle', label: 'Помощь' },
-  ];
-
-  const renderCommands = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
-      {commands.map((cmd, index) => (
-        <Card
-          key={cmd.id}
-          className="glass-effect hover-lift cursor-pointer p-6 border-2 border-primary/20 transition-all duration-300 hover:border-primary/50 neon-glow"
-          style={{ animationDelay: `${index * 0.1}s` }}
-        >
-          <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-xl bg-${cmd.color}/20`}>
-              <Icon name={cmd.icon} className={`w-6 h-6 text-${cmd.color}`} />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg mb-1">{cmd.name}</h3>
-              <p className="text-sm text-muted-foreground">{cmd.description}</p>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-
-  const renderProfile = () => (
-    <div className="animate-slide-up space-y-6">
-      <Card className="glass-effect p-8 border-2 border-primary/20 neon-glow">
-        <div className="flex items-center gap-6 mb-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary via-secondary to-accent p-1 animate-pulse-glow">
-            <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-              <Icon name="User" className="w-12 h-12 text-primary" />
-            </div>
-          </div>
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Пользователь #1337</h2>
-            <Badge className="bg-primary/20 text-primary border-primary/30">Pro уровень</Badge>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium">Прогресс задач</span>
-              <span className="text-sm text-muted-foreground">75%</span>
-            </div>
-            <Progress value={75} className="h-2" />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            <div className="glass-effect p-4 rounded-lg text-center">
-              <Icon name="Zap" className="w-6 h-6 mx-auto mb-2 text-neon-purple" />
-              <div className="text-2xl font-bold">248</div>
-              <div className="text-xs text-muted-foreground">Команд выполнено</div>
-            </div>
-            <div className="glass-effect p-4 rounded-lg text-center">
-              <Icon name="TrendingUp" className="w-6 h-6 mx-auto mb-2 text-neon-blue" />
-              <div className="text-2xl font-bold">89%</div>
-              <div className="text-xs text-muted-foreground">Успешность</div>
-            </div>
-            <div className="glass-effect p-4 rounded-lg text-center">
-              <Icon name="Award" className="w-6 h-6 mx-auto mb-2 text-neon-pink" />
-              <div className="text-2xl font-bold">12</div>
-              <div className="text-xs text-muted-foreground">Достижений</div>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-
-  const renderSearch = () => (
-    <div className="animate-fade-in space-y-4">
-      <Card className="glass-effect p-6 border-2 border-primary/20">
-        <div className="relative">
-          <Icon name="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Поиск команд, настроек, функций..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-background/50 border-primary/20 focus:border-primary/50 h-12"
-          />
-        </div>
-      </Card>
-
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground px-2">Популярные запросы</h3>
-        {['Создать задачу', 'Настройки уведомлений', 'Экспорт данных', 'История команд'].map((query, index) => (
-          <Card
-            key={index}
-            className="glass-effect p-4 hover-lift cursor-pointer border border-primary/10 hover:border-primary/30 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <Icon name="Clock" className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{query}</span>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderNotifications = () => (
-    <div className="animate-slide-up space-y-3">
-      {notifications.map((notif, index) => (
-        <Card
-          key={notif.id}
-          className="glass-effect p-5 hover-lift cursor-pointer border border-primary/10 hover:border-primary/30 transition-all"
-          style={{ animationDelay: `${index * 0.1}s` }}
-        >
-          <div className="flex items-start gap-4">
-            <div className={`p-2 rounded-lg ${
-              notif.type === 'success' ? 'bg-green-500/20' :
-              notif.type === 'warning' ? 'bg-yellow-500/20' :
-              'bg-blue-500/20'
-            }`}>
-              <Icon
-                name={
-                  notif.type === 'success' ? 'CheckCircle' :
-                  notif.type === 'warning' ? 'AlertTriangle' :
-                  'Info'
-                }
-                className={`w-5 h-5 ${
-                  notif.type === 'success' ? 'text-green-400' :
-                  notif.type === 'warning' ? 'text-yellow-400' :
-                  'text-blue-400'
-                }`}
-              />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium mb-1">{notif.text}</p>
-              <p className="text-xs text-muted-foreground">{notif.time}</p>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-
-  const renderHelp = () => (
-    <div className="animate-fade-in space-y-4">
-      <Card className="glass-effect p-6 border-2 border-primary/20 neon-glow">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="p-3 rounded-xl bg-primary/20">
-            <Icon name="Book" className="w-8 h-8 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold">Документация</h3>
-            <p className="text-sm text-muted-foreground">Полное руководство пользователя</p>
-          </div>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          { title: 'Быстрый старт', icon: 'Rocket', desc: 'Начните работу за 5 минут' },
-          { title: 'FAQ', icon: 'MessageCircle', desc: 'Часто задаваемые вопросы' },
-          { title: 'Поддержка', icon: 'HeadphonesIcon', desc: 'Свяжитесь с нашей командой' },
-          { title: 'Обновления', icon: 'Sparkles', desc: 'Новые функции и улучшения' },
-        ].map((item, index) => (
-          <Card
-            key={index}
-            className="glass-effect p-5 hover-lift cursor-pointer border border-primary/10 hover:border-primary/30 transition-all"
-          >
-            <Icon name={item.icon} className="w-6 h-6 text-primary mb-3" />
-            <h4 className="font-semibold mb-1">{item.title}</h4>
-            <p className="text-xs text-muted-foreground">{item.desc}</p>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'commands':
-        return renderCommands();
-      case 'profile':
-        return renderProfile();
-      case 'search':
-        return renderSearch();
-      case 'notifications':
-        return renderNotifications();
-      case 'help':
-        return renderHelp();
-      default:
-        return renderCommands();
+  const handleSendMessage = () => {
+    if (messageText.trim()) {
+      setMessageText('');
     }
   };
 
+  const currentChat = chats.find(c => c.id === selectedChat);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8 text-center animate-fade-in">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent animate-pulse-glow">
-              <Icon name="Bot" className="w-8 h-8 text-white" />
+    <div className="h-screen flex flex-col bg-background">
+      {!isOnline && (
+        <div className="bg-yellow-500 text-white text-center py-2 text-sm">
+          <Icon name="WifiOff" className="w-4 h-4 inline mr-2" />
+          Нет соединения. Приложение работает в офлайн-режиме
+        </div>
+      )}
+
+      <div className="flex-1 flex overflow-hidden">
+        <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block w-full md:w-96 border-r bg-muted/30`}>
+          <div className="h-full flex flex-col">
+            <div className="p-4 border-b bg-background">
+              <div className="flex items-center justify-between mb-3">
+                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Icon name="X" className="w-5 h-5" />
+                </Button>
+                <h1 className="text-xl font-semibold">Telegram</h1>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon">
+                    <Icon name="Settings" className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="relative">
+                <Icon name="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Поиск"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-muted/50"
+                />
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              AI Assistant Bot
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-lg">Универсальный помощник для автоматизации задач</p>
-          
-          <div className="flex justify-center gap-3 mt-4">
-            {!isOnline && (
-              <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                <Icon name="WifiOff" className="w-3 h-3 mr-1" />
-                Офлайн режим
-              </Badge>
-            )}
-            {isPWA && (
-              <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
-                <Icon name="Smartphone" className="w-3 h-3 mr-1" />
-                Установлено
-              </Badge>
-            )}
+
+            <ScrollArea className="flex-1">
+              <div className="divide-y">
+                {chats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    onClick={() => {
+                      setSelectedChat(chat.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
+                      selectedChat === chat.id ? 'bg-primary/5' : ''
+                    }`}
+                  >
+                    <div className="flex gap-3">
+                      <div className="relative">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {chat.avatar}
+                          </AvatarFallback>
+                        </Avatar>
+                        {chat.online && (
+                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline mb-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold truncate">{chat.name}</h3>
+                            {chat.pinned && <Icon name="Pin" className="w-3 h-3 text-muted-foreground" />}
+                          </div>
+                          <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">{chat.time}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                          {chat.unread > 0 && (
+                            <Badge className="ml-2 bg-primary text-primary-foreground rounded-full px-2 h-5 text-xs">
+                              {chat.unread}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3 mb-8 animate-slide-up">
-          {navigationItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeSection === item.id ? 'default' : 'outline'}
-              className={`gap-2 transition-all ${
-                activeSection === item.id
-                  ? 'bg-primary text-primary-foreground neon-glow'
-                  : 'glass-effect hover-lift border-primary/20 hover:border-primary/50'
-              }`}
-              onClick={() => setActiveSection(item.id)}
-            >
-              <Icon name={item.icon} className="w-4 h-4" />
-              {item.label}
-            </Button>
-          ))}
-        </div>
+        <div className={`${!isMobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col flex-1`}>
+          {selectedChat ? (
+            <>
+              <div className="p-4 border-b bg-background flex items-center gap-3">
+                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(true)}>
+                  <Icon name="Menu" className="w-5 h-5" />
+                </Button>
+                <Avatar className="w-10 h-10">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {currentChat?.avatar}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h2 className="font-semibold">{currentChat?.name}</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {currentChat?.online ? 'в сети' : 'был(а) недавно'}
+                  </p>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon">
+                    <Icon name="Phone" className="w-5 h-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <Icon name="MoreVertical" className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
 
-        <div className="mt-8">{renderContent()}</div>
+              <ScrollArea className="flex-1 p-4 bg-muted/20">
+                <div className="space-y-4 max-w-4xl mx-auto">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sent ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                          msg.sent
+                            ? 'bg-primary text-primary-foreground rounded-br-md'
+                            : 'bg-card rounded-bl-md'
+                        }`}
+                      >
+                        <p className="text-sm">{msg.text}</p>
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          <span className="text-xs opacity-70">{msg.time}</span>
+                          {msg.sent && (
+                            <Icon
+                              name={msg.read ? 'CheckCheck' : 'Check'}
+                              className="w-4 h-4 opacity-70"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="p-4 border-t bg-background">
+                <div className="flex gap-2 max-w-4xl mx-auto">
+                  <Button variant="ghost" size="icon">
+                    <Icon name="Paperclip" className="w-5 h-5" />
+                  </Button>
+                  <Input
+                    placeholder="Написать сообщение..."
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    className="flex-1"
+                  />
+                  <Button variant="ghost" size="icon">
+                    <Icon name="Smile" className="w-5 h-5" />
+                  </Button>
+                  {messageText ? (
+                    <Button size="icon" onClick={handleSendMessage}>
+                      <Icon name="Send" className="w-5 h-5" />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="icon">
+                      <Icon name="Mic" className="w-5 h-5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-muted/20">
+              <div className="text-center">
+                <Icon name="MessageCircle" className="w-20 h-20 mx-auto text-muted-foreground mb-4" />
+                <h2 className="text-2xl font-semibold mb-2">Выберите чат</h2>
+                <p className="text-muted-foreground">
+                  Выберите диалог из списка слева
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

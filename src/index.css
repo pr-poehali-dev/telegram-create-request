@@ -6,39 +6,75 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    --card: 224 71% 4%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 263 70% 50%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 207 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 199 89% 48%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 11% 96%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 11% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 330 81% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 207 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 215 27% 17%;
-    --input: 215 27% 17%;
-    --ring: 263 70% 50%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 207 100% 50%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
-    --neon-purple: 263 70% 50%;
-    --neon-blue: 199 89% 48%;
-    --neon-pink: 330 81% 60%;
+    --telegram-blue: 207 100% 50%;
+    --telegram-bg: 0 0% 100%;
+    --telegram-sidebar: 0 0% 97%;
+    --telegram-divider: 0 0% 90%;
+  }
+
+  .dark {
+    --background: 216 28% 7%;
+    --foreground: 0 0% 100%;
+
+    --card: 216 28% 7%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 216 28% 7%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 207 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 207 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 207 100% 50%;
+
+    --telegram-blue: 207 100% 50%;
+    --telegram-bg: 216 28% 7%;
+    --telegram-sidebar: 217 33% 12%;
+    --telegram-divider: 0 0% 20%;
   }
 }
 
