@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,24 @@ type Section = 'commands' | 'profile' | 'search' | 'notifications' | 'help';
 const Index = () => {
   const [activeSection, setActiveSection] = useState<Section>('commands');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isPWA, setIsPWA] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
+    setIsPWA(isInstalled);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const commands = [
     { id: 1, name: '/start', description: 'Запустить бота', icon: 'Zap', color: 'neon-purple' },
@@ -237,6 +255,21 @@ const Index = () => {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg">Универсальный помощник для автоматизации задач</p>
+          
+          <div className="flex justify-center gap-3 mt-4">
+            {!isOnline && (
+              <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                <Icon name="WifiOff" className="w-3 h-3 mr-1" />
+                Офлайн режим
+              </Badge>
+            )}
+            {isPWA && (
+              <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
+                <Icon name="Smartphone" className="w-3 h-3 mr-1" />
+                Установлено
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 mb-8 animate-slide-up">
